@@ -7,12 +7,15 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Backup current /etc/hosts
-cp /etc/hosts /etc/hosts.bak
+cp /etc/hosts /etc/hosts.bak || {
+    echo "Failed to back up /etc/hosts"
+    exit 1
+}
 
 # Remove existing localhost and facebook.com lines (if any)
-sed -i '/\slocalhost$/d' /etc/hosts
+sed -i '/[[:space:]]localhost$/d' /etc/hosts
 sed -i '/facebook\.com/d' /etc/hosts
 
 # Add new host entries
-echo "127.0.0.2 localhost" >> /etc/hosts
-echo "8.8.8.8 facebook.com" >> /etc/hosts
+echo "127.0.0.2 localhost" | tee -a /etc/hosts > /dev/null
+echo "8.8.8.8 facebook.com" | tee -a /etc/hosts > /dev/null
