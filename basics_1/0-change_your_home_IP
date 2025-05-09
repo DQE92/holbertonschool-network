@@ -1,6 +1,39 @@
 #!/usr/bin/env bash
-# Configures an Ubuntu server with custom IP resolution
-cp /etc/hosts ~/hosts.new
-sed -i 's/127.0.0.1\tlocalhost/127.0.0.2\tlocalhost/g' ~/hosts.new
-echo "8.8.8.8\tfacebook.com" >> ~/hosts.new
-cp -f ~/hosts.new /etc/hosts
+# Script to configure custom IP resolution
+# Changes localhost to resolve to 127.0.0.2
+# Changes facebook.com to resolve to 8.8.8.8
+
+# Check if running as root
+if [ "$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root (with sudo)" >&2
+  exit 1
+fi
+
+# Create a backup of the hosts file
+cp /etc/hosts "/etc/hosts.backup.$(date +%Y%m%d%H%M%S)"
+
+# Update the /etc/hosts file
+# First, we'll replace the localhost entry
+sed -i 's/127\.0\.0\.1[[:space:]]\+localhost/127.0.0.2 localhost/g' /etc/hosts
+
+# Then add or replace the facebook.com entry
+if grep -q "facebook\.com" /etc/hosts; then
+  sed -i 's/.*[[:space:]]facebook\.com$/8.8.8.8 facebook.com/g' /etc/hosts
+else
+  echo "8.8.8.8 facebook.com" >> /etc/hosts
+fi
+
+echo "IP configuration updated successfully!"
+echo "localhost now resolves to 127.0.0.2"
+echo "facebook.com now resolves to 8.8.8.8"
+
+# Clear DNS cache if systemd-resolved is running
+if systemctl is-active --quiet systemd-resolved; then
+  systemd-resolve --flush-caches
+  echo "DNS cache flushed"
+fi
+
+# Display the new hosts file contents
+echo
+echo "Updated /etc/hosts file:"
+cat /etc/hosts
