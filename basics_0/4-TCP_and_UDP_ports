@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+echo "Active Internet connections (only servers)"
+ss --tcp --udp --listening --numeric --process
+
+echo "Active UNIX domain sockets (only servers)"
+ss --unix --listening --numeric --process
