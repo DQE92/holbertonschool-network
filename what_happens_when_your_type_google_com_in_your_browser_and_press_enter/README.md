@@ -1,0 +1,1 @@
+what appens when you type google.com
